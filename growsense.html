@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrowSense</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f7f3ee;
+    --green-dark: #1e4d2b;
+    --green-mid: #2d6a3f;
+    --green-light: #4a9b5f;
+    --green-pale: #d4ead9;
+    --green-mist: #edf6ee;
+    --blue: #2563a8;
+    --blue-pale: #ddeaf8;
+    --red: #b84040;
+    --red-pale: #fbe8e8;
+    --amber: #c47d1a;
+    --amber-pale: #fdf0dc;
+    --text-dark: #1a2e1e;
+    --text-mid: #4a6455;
+    --text-light: #8aab94;
+    --card-shadow: 0 2px 20px rgba(30,77,43,0.08);
+    --radius: 20px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text-dark);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Background texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: radial-gradient(circle at 20% 20%, #d4ead944 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, #c8e6cc33 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; padding-bottom: 90px; }
+
+  /* Header */
+  .header {
+    padding: 52px 24px 24px;
+    position: relative;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+  }
+
+  .logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--green-light);
+    text-transform: uppercase;
+  }
+
+  .header-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--green-dark);
+    line-height: 1.1;
+    margin-top: 4px;
+  }
+
+  .header-title span {
+    font-style: italic;
+    color: var(--green-mid);
+  }
+
+  .bt-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1.5px solid var(--green-pale);
+    border-radius: 30px;
+    padding: 6px 14px;
+    box-shadow: var(--card-shadow);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--green-mid);
+    white-space: nowrap;
+    margin-top: 4px;
+  }
+
+  .bt-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ccc;
+    transition: background 0.3s;
+  }
+
+  .bt-dot.connected { background: var(--green-light); box-shadow: 0 0 0 3px #4a9b5f22; }
+
+  /* Section padding */
+  .section { padding: 0 16px; margin-bottom: 12px; }
+
+  /* Estado general */
+  .estado-card {
+    background: var(--green-dark);
+    border-radius: var(--radius);
+    padding: 22px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .estado-card::before {
+    content: '🌿';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 64px;
+    opacity: 0.15;
+  }
+
+  .estado-label {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: var(--green-pale);
+    opacity: 0.7;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .estado-titulo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: white;
+    margin-bottom: 12px;
+  }
+
+  .estado-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--green-pale);
+  }
+
+  /* Sensor grid */
+  .sensor-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px;
+    margin-bottom: 12px;
+  }
+
+  .sensor-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 18px 16px;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .sensor-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .sensor-card.humedad::after { background: var(--blue); }
+  .sensor-card.temp::after { background: var(--red); }
+
+  .sensor-icon {
+    font-size: 20px;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .sensor-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 4px;
+  }
+
+  .sensor-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .sensor-card.humedad .sensor-value { color: var(--blue); }
+  .sensor-card.temp .sensor-value { color: var(--red); }
+
+  .sensor-value span { font-size: 16px; opacity: 0.7; }
+
+  .sensor-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
+
+  .sensor-card.humedad .sensor-pill { background: var(--blue-pale); color: var(--blue); }
+  .sensor-card.temp .sensor-pill { background: var(--red-pale); color: var(--red); }
+
+  /* Luz card */
+  .luz-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--card-shadow);
+    animation: fadeUp 0.6s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .luz-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--amber);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .luz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .luz-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .luz-title span:first-child { font-size: 18px; }
+
+  .luz-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-light);
+  }
+
+  .luz-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--amber);
+    background: var(--amber-pale);
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  .luz-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--amber);
+    margin-bottom: 12px;
+  }
+
+  .progress-track {
+    background: #f0ebe3;
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f5d08a, var(--amber));
+    border-radius: 10px;
+    transition: width 1s ease;
+  }
+
+  .progress-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--text-light);
+  }
+
+  /* Alertas */
+  .alertas-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--card-shadow);
+    animation: fadeUp 0.7s ease both;
+  }
+
+  .alertas-titulo {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-light);
+    margin-bottom: 14px;
+  }
+
+  .alerta-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 14px;
+    margin-bottom: 8px;
+    background: var(--green-mist);
+    animation: slideIn 0.4s ease both;
+  }
+
+  .alerta-item:last-child { margin-bottom: 0; }
+
+  .alerta-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: var(--green-pale);
+  }
+
+  .alerta-item.warning { background: var(--amber-pale); }
+  .alerta-item.warning .alerta-icon { background: #fde8b8; }
+  .alerta-item.danger { background: var(--red-pale); }
+  .alerta-item.danger .alerta-icon { background: #fdd; }
+
+  .alerta-texto { font-size: 13px; font-weight: 500; color: var(--text-dark); }
+  .alerta-tiempo { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: white;
+    border-top: 1px solid #e8f0e9;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0 20px;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(30,77,43,0.07);
+  }
+
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 0 20px;
+  }
+
+  .nav-item.active { color: var(--green-dark); }
+  .nav-item svg { width: 22px; height: 22px; }
+
+  /* Modal BT */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 430px;
+    animation: slideUp 0.3s ease;
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--green-dark);
+    margin-bottom: 6px;
+  }
+
+  .modal-sub { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+
+  .bt-device {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1.5px solid var(--green-pale);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .bt-device:hover { background: var(--green-mist); border-color: var(--green-light); }
+
+  .bt-device-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: var(--green-mist);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+
+  .bt-device-name { font-size: 14px; font-weight: 500; color: var(--text-dark); }
+  .bt-device-id { font-size: 11px; color: var(--text-light); }
+
+  .btn-cancel {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    background: #f5f5f5;
+    color: var(--text-mid);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Animaciones */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .pulsing { animation: pulse 2s infinite; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <p class="logo-text">GrowSense</p>
+        <h1 class="header-title">Mi <span>maceta</span></h1>
+      </div>
+      <button class="bt-badge" onclick="abrirBT()" id="btBadge">
+        <div class="bt-dot" id="btDot"></div>
+        <span id="btTexto">Conectar</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Estado general -->
+  <div class="section">
+    <div class="estado-card">
+      <p class="estado-label">Estado general</p>
+      <p class="estado-titulo" id="estadoTitulo">Sin conectar</p>
+      <div class="estado-pill">
+        <span>🌿</span>
+        <span id="estadoMensaje">Conecta tu maceta para comenzar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sensores -->
+  <div class="sensor-grid">
+    <div class="sensor-card humedad">
+      <span class="sensor-icon">💧</span>
+      <p class="sensor-label">Humedad</p>
+      <p class="sensor-value" id="valorHumedad">--<span>%</span></p>
+      <span class="sensor-pill" id="estadoHumedad">—</span>
+    </div>
+    <div class="sensor-card temp">
+      <span class="sensor-icon">🌡️</span>
+      <p class="sensor-label">Temperatura</p>
+      <p class="sensor-value" id="valorTemp">--<span>°C</span></p>
+      <span class="sensor-pill" id="estadoTemp">—</span>
+    </div>
+  </div>
+
+  <!-- Luz -->
+  <div class="section">
+    <div class="luz-card">
+      <div class="luz-header">
+        <div class="luz-title">
+          <span>☀️</span>
+          <p class="luz-label">Nivel de luz</p>
+        </div>
+        <span class="luz-badge" id="estadoLuz">—</span>
+      </div>
+      <p class="luz-value" id="valorLuz">-- <span style="font-size:16px;opacity:0.6;">lux</span></p>
+      <div class="progress-track">
+        <div class="progress-fill" id="barraLuz" style="width: 0%"></div>
+      </div>
+      <div class="progress-labels">
+        <span>Oscuro</span>
+        <span>Brillante</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alertas -->
+  <div class="section">
+    <div class="alertas-card">
+      <p class="alertas-titulo">🔔 Alertas recientes</p>
+      <div id="listaAlertas">
+        <div class="alerta-item">
+          <div class="alerta-icon">💤</div>
+          <div>
+            <p class="alerta-texto">Sin alertas aún</p>
+            <p class="alerta-tiempo">Conecta tu maceta</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    Inicio
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Historial
+  </div>
+  <div class="nav-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    Config
+  </div>
+</nav>
+
+<!-- Modal Bluetooth -->
+<div class="modal-overlay" id="modalBT">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <p class="modal-title">Conectar maceta</p>
+    <p class="modal-sub">Selecciona tu dispositivo GrowSense</p>
+    <div class="bt-device" onclick="conectar('GrowSense-HC06')">
+      <div class="bt-device-icon">🌿</div>
+      <div>
+        <p class="bt-device-name">GrowSense-HC06</p>
+        <p class="bt-device-id">Módulo Bluetooth · Señal fuerte</p>
+      </div>
+    </div>
+    <div class="bt-device" onclick="conectar('HC-06')">
+      <div class="bt-device-icon">📡</div>
+      <div>
+        <p class="bt-device-name">HC-06</p>
+        <p class="bt-device-id">Módulo Bluetooth · Señal media</p>
+      </div>
+    </div>
+    <button class="btn-cancel" onclick="cerrarBT()">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  let conectado = false;
+  let intervalo = null;
+  let alertas = [];
+
+  function abrirBT() {
+    document.getElementById('modalBT').classList.add('open');
+  }
+
+  function cerrarBT() {
+    document.getElementById('modalBT').classList.remove('open');
+  }
+
+  function conectar(nombre) {
+    cerrarBT();
+    const btDot = document.getElementById('btDot');
+    const btTexto = document.getElementById('btTexto');
+    btDot.classList.add('pulsing');
+    btTexto.textContent = 'Conectando...';
+
+    setTimeout(() => {
+      conectado = true;
+      btDot.classList.remove('pulsing');
+      btDot.classList.add('connected');
+      btTexto.textContent = 'Conectado';
+      iniciarSimulacion();
+    }, 2000);
+  }
+
+  function iniciarSimulacion() {
+    actualizarDatos();
+    intervalo = setInterval(actualizarDatos, 2000);
+  }
+
+  function actualizarDatos() {
+    // Simula datos del Arduino
+    const humedad = Math.floor(Math.random() * 40 + 40); // 40-80%
+    const temp = Math.floor(Math.random() * 10 + 22);    // 22-32°C
+    const luz = Math.floor(Math.random() * 400 + 400);   // 400-800 lux
+
+    // Actualizar UI
+    document.getElementById('valorHumedad').innerHTML = humedad + '<span>%</span>';
+    document.getElementById('valorTemp').innerHTML = temp + '<span>°C</span>';
+    document.getElementById('valorLuz').innerHTML = luz + ' <span style="font-size:16px;opacity:0.6;">lux</span>';
+    document.getElementById('barraLuz').style.width = (luz / 1023 * 100) + '%';
+
+    // Estados humedad
+    let estH = 'Húmedo', alertaH = null;
+    if (humedad < 30) { estH = 'Seco 🚨'; alertaH = { tipo: 'danger', icono: '💧', texto: '¡Tu planta necesita agua!', tiempo: 'Ahora' }; }
+    else if (humedad > 75) { estH = 'Muy húmedo'; }
+    document.getElementById('estadoHumedad').textContent = estH;
+
+    // Estados temperatura
+    let estT = 'Normal', alertaT = null;
+    if (temp > 30) { estT = 'Caliente 🔥'; alertaT = { tipo: 'warning', icono: '🌡️', texto: 'Temperatura alta', tiempo: 'Ahora' }; }
+    else if (temp < 15) { estT = 'Frío ❄️'; }
+    document.getElementById('estadoTemp').textContent = estT;
+
+    // Estado luz
+    let estL = 'Buena';
+    if (luz < 300) estL = 'Poca luz';
+    else if (luz > 800) estL = 'Muy brillante';
+    document.getElementById('estadoLuz').textContent = estL;
+
+    // Estado general
+    if (alertaH || alertaT) {
+      document.getElementById('estadoTitulo').textContent = '⚠️ Atención';
+      document.getElementById('estadoMensaje').textContent = 'Tu planta necesita cuidados';
+    } else {
+      document.getElementById('estadoTitulo').textContent = 'Todo bien ✅';
+      document.getElementById('estadoMensaje').textContent = 'Tu planta está feliz hoy';
+    }
+
+    // Agregar alertas
+    if (alertaH) agregarAlerta(alertaH);
+    if (alertaT) agregarAlerta(alertaT);
+    if (!alertaH && !alertaT) agregarAlerta({ tipo: 'ok', icono: '✅', texto: 'Todo está bien', tiempo: 'Ahora' });
+
+    renderAlertas();
+  }
+
+  function agregarAlerta(alerta) {
+    alertas.unshift(alerta);
+    if (alertas.length > 4) alertas.pop();
+  }
+
+  function renderAlertas() {
+    const lista = document.getElementById('listaAlertas');
+    lista.innerHTML = alertas.map(a => `
+      <div class="alerta-item ${a.tipo === 'ok' ? '' : a.tipo}" style="animation-delay:${Math.random()*0.2}s">
+        <div class="alerta-icon">${a.icono}</div>
+        <div>
+          <p class="alerta-texto">${a.texto}</p>
+          <p class="alerta-tiempo">${a.tiempo}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+</script>
+</body>
+</html>
